@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "@notionhq/client": "^2.3.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-aspect-ratio": "^1.0.3",
@@ -41,7 +40,6 @@
     "@radix-ui/react-toast": "^1.1.5",
     "@radix-ui/react-toggle": "^1.0.3",
     "@radix-ui/react-tooltip": "^1.0.7",
-    "@sendgrid/mail": "^8.1.4",
     "@supabase/supabase-js": "^2.45.6",
     "@types/react-helmet": "^6.1.11",
     "class-variance-authority": "^0.7.0",
