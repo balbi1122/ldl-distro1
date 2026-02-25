@@ -1,515 +1,611 @@
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Checkbox } from "./ui/checkbox";
-import { Switch } from "./ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./ui/accordion";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { Progress } from "./ui/progress";
-import { Slider } from "./ui/slider";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
-import { Textarea } from "./ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Toggle } from "./ui/toggle";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import {
-  AlertCircle,
-  Bell,
+  BookOpen,
   Check,
   ChevronRight,
-  Code2,
-  Layers,
-  Mail,
-  Palette,
+  Crown,
+  Feather,
+  Film,
+  Heart,
+  Moon,
+  Music,
+  Shield,
   Sparkles,
   Star,
+  TreePine,
+  Users,
+  Waves,
   Zap,
 } from "lucide-react";
 
-const categories = ["All", "Inputs", "Display", "Feedback", "Layout"];
+/* ─── Era data ─────────────────────────────────────────────────── */
+const eras = [
+  {
+    title: "Eras Tour",
+    slug: "Eras%20Tour",
+    gradient: "from-yellow-400 to-amber-600",
+    icon: <Crown className="h-6 w-6" />,
+    description: "The record-breaking concert film era",
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+  },
+  {
+    title: "Midnights",
+    slug: "Midnights",
+    gradient: "from-indigo-500 to-violet-700",
+    icon: <Moon className="h-6 w-6" />,
+    description: "13 sleepless nights and confessions",
+    color: "text-violet-600",
+    bg: "bg-violet-50 border-violet-200",
+  },
+  {
+    title: "Folklore",
+    slug: "Folklore",
+    gradient: "from-slate-400 to-slate-700",
+    icon: <TreePine className="h-6 w-6" />,
+    description: "Indie folk daydreams & cottagecore",
+    color: "text-slate-600",
+    bg: "bg-slate-50 border-slate-200",
+  },
+  {
+    title: "Evermore",
+    slug: "Evermore",
+    gradient: "from-orange-400 to-red-600",
+    icon: <Feather className="h-6 w-6" />,
+    description: "A sister album born in the woods",
+    color: "text-orange-600",
+    bg: "bg-orange-50 border-orange-200",
+  },
+  {
+    title: "1989",
+    slug: "1989",
+    gradient: "from-sky-400 to-blue-600",
+    icon: <Waves className="h-6 w-6" />,
+    description: "Pop perfection and synth dreams",
+    color: "text-sky-600",
+    bg: "bg-sky-50 border-sky-200",
+  },
+  {
+    title: "Colbert Book Project",
+    slug: "Colbert%20Book%20Project",
+    gradient: "from-rose-500 to-pink-700",
+    icon: <BookOpen className="h-6 w-6" />,
+    description: "Taylor's gothic mystery — co-written by fans",
+    color: "text-rose-600",
+    bg: "bg-rose-50 border-rose-200",
+  },
+];
 
+/* ─── Membership plans ─────────────────────────────────────────── */
+const plans = [
+  {
+    name: "Free",
+    price: "0",
+    period: "forever",
+    tagline: "Start sharing your creativity",
+    cta: "Get Started",
+    highlighted: false,
+    features: [
+      "Browse all content",
+      "1 piece of content",
+      "Basic community access",
+      "Album category browsing",
+    ],
+  },
+  {
+    name: "Monthly",
+    price: "7",
+    period: "/month",
+    tagline: "Perfect for active creators",
+    cta: "Subscribe",
+    highlighted: false,
+    features: [
+      "Everything in Free",
+      "Unlimited content posts",
+      "Priority support",
+      "Early access to features",
+      "Creator badge",
+    ],
+  },
+  {
+    name: "Annual",
+    price: "49",
+    period: "/year",
+    tagline: "Best value for dedicated Swifties",
+    cta: "Subscribe",
+    highlighted: true,
+    badge: "Best Value",
+    features: [
+      "Everything in Monthly",
+      "2 months free",
+      "Exclusive content access",
+      "Annual member badge",
+      "Featured creator opportunities",
+    ],
+  },
+  {
+    name: "Lifetime",
+    price: "99",
+    period: "one-time",
+    tagline: "Join the inner circle forever",
+    cta: "Subscribe",
+    highlighted: false,
+    badge: "Popular",
+    features: [
+      "Everything in Annual",
+      "Lifetime access",
+      "Founding member status",
+      "Exclusive Lifetime badge",
+      "Direct input on features",
+      "VIP community events",
+    ],
+  },
+];
+
+/* ─── Component ────────────────────────────────────────────────── */
 const Home: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [progress, setProgress] = useState(60);
-  const [sliderValue, setSliderValue] = useState([40]);
-  const [switchOn, setSwitchOn] = useState(true);
+  const [activeNav, setActiveNav] = useState("");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-600 text-white">
-              <Sparkles className="h-5 w-5" />
+    <div className="min-h-screen bg-white text-slate-900 font-sans">
+
+      {/* ── Navigation ── */}
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
+        <div className="mx-auto max-w-6xl px-6 py-3 flex items-center justify-between">
+          {/* Logo */}
+          <a href="/" className="flex items-center gap-2 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-pink-500 text-white shadow-sm">
+              <Sparkles className="h-4 w-4" />
             </div>
-            <div>
-              <span className="text-lg font-bold tracking-tight">showgirl</span>
-              <span className="text-lg font-bold tracking-tight text-violet-600">stories</span>
+            <div className="leading-tight">
+              <span className="block text-sm font-bold tracking-tight text-slate-900">Stories For A</span>
+              <span className="block text-sm font-bold tracking-tight text-violet-600">Showgirl</span>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="hidden sm:flex gap-1">
-              <Code2 className="h-3 w-3" /> 42 components
-            </Badge>
-            <Button size="sm" variant="outline">Docs</Button>
-            <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white">
-              <Star className="mr-2 h-4 w-4" /> Star
+          </a>
+
+          {/* Nav links */}
+          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+            {[
+              { label: "Browse", href: "/browse" },
+              { label: "Albums & Eras", href: "/albums" },
+              { label: "Colbert Book", href: "/colbert-project" },
+              { label: "Membership", href: "/membership" },
+            ].map(({ label, href }) => (
+              <a
+                key={label}
+                href={href}
+                className="hover:text-violet-600 transition-colors"
+                onClick={() => setActiveNav(label)}
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+              Sign In
+            </Button>
+            <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white shadow-sm">
+              Start Writing
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="mx-auto max-w-7xl px-6 py-16 text-center">
-        <Badge className="mb-4 bg-violet-100 text-violet-700 hover:bg-violet-100">
-          <Zap className="mr-1 h-3 w-3" /> Built with shadcn/ui + Tailwind CSS
-        </Badge>
-        <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl mb-4">
-          A beautiful UI component{" "}
-          <span className="text-violet-600">showcase</span>
-        </h1>
-        <p className="mx-auto max-w-2xl text-lg text-slate-500 mb-8">
-          Explore 42 production-ready components built with Radix UI primitives and styled with Tailwind CSS. Click, interact, and copy.
-        </p>
-        <div className="flex items-center justify-center gap-4">
-          <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-white">
-            Browse Components <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button size="lg" variant="outline">
-            View on GitHub
-          </Button>
+      {/* ── Hero ── */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-violet-50 via-pink-50 to-white">
+        {/* Decorative stars */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {[
+            { top: "10%", left: "8%", size: "h-2 w-2", opacity: "opacity-40" },
+            { top: "20%", left: "75%", size: "h-3 w-3", opacity: "opacity-30" },
+            { top: "60%", left: "5%", size: "h-2 w-2", opacity: "opacity-20" },
+            { top: "40%", left: "90%", size: "h-2 w-2", opacity: "opacity-30" },
+            { top: "75%", left: "85%", size: "h-3 w-3", opacity: "opacity-20" },
+            { top: "15%", left: "45%", size: "h-1.5 w-1.5", opacity: "opacity-50" },
+          ].map((s, i) => (
+            <Star
+              key={i}
+              className={`absolute ${s.size} ${s.opacity} fill-violet-400 text-violet-400`}
+              style={{ top: s.top, left: s.left }}
+            />
+          ))}
+        </div>
+
+        <div className="mx-auto max-w-4xl px-6 py-24 text-center relative">
+          <Badge className="mb-5 bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-100 px-4 py-1 text-xs uppercase tracking-wider">
+            A Community for Swifties
+          </Badge>
+
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
+            Stories For A{" "}
+            <span className="bg-gradient-to-r from-violet-600 to-pink-500 bg-clip-text text-transparent">
+              Showgirl
+            </span>
+          </h1>
+
+          <p className="mx-auto max-w-2xl text-lg sm:text-xl text-slate-500 mb-10 leading-relaxed">
+            Share your Taylor Swift inspired stories, poems, and videos with a
+            community that celebrates creativity in every era.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button
+              size="lg"
+              className="bg-violet-600 hover:bg-violet-700 text-white shadow-md px-8"
+            >
+              <Feather className="mr-2 h-4 w-4" /> Start Writing
+            </Button>
+            <Button size="lg" variant="outline" className="px-8 border-slate-300">
+              Browse Stories <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="mt-10 flex items-center justify-center gap-8 text-sm text-slate-400">
+            <span className="flex items-center gap-1.5">
+              <Check className="h-4 w-4 text-violet-500" /> Free to join
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check className="h-4 w-4 text-violet-500" /> Original content only
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check className="h-4 w-4 text-violet-500" /> AI-assisted welcome
+            </span>
+          </div>
         </div>
       </section>
 
-      {/* Category Filter */}
-      <section className="mx-auto max-w-7xl px-6 mb-8">
-        <div className="flex flex-wrap gap-2 justify-center">
-          {categories.map((cat) => (
-            <Button
-              key={cat}
-              variant={activeCategory === cat ? "default" : "outline"}
-              size="sm"
-              className={activeCategory === cat ? "bg-violet-600 hover:bg-violet-700 text-white" : ""}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </Button>
+      {/* ── Why section ── */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-3">Why Stories For A Showgirl?</h2>
+          <p className="text-slate-500 max-w-xl mx-auto">
+            A dedicated space for Taylor Swift fans to express their creativity through original works.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            {
+              icon: <Feather className="h-6 w-6 text-violet-500" />,
+              title: "Share Your Creativity",
+              desc: "Post stories, poems, and videos inspired by Taylor Swift's music and lyrics.",
+              bg: "bg-violet-50",
+            },
+            {
+              icon: <Users className="h-6 w-6 text-pink-500" />,
+              title: "Join the Community",
+              desc: "Connect with fellow Swifties who share your passion for creative expression.",
+              bg: "bg-pink-50",
+            },
+            {
+              icon: <Shield className="h-6 w-6 text-sky-500" />,
+              title: "Safe & Respectful",
+              desc: "A moderated space that celebrates original work and respects copyright.",
+              bg: "bg-sky-50",
+            },
+            {
+              icon: <Zap className="h-6 w-6 text-amber-500" />,
+              title: "AI Welcome",
+              desc: "AI-assisted content is welcome here, as long as it's properly disclosed.",
+              bg: "bg-amber-50",
+            },
+          ].map(({ icon, title, desc, bg }) => (
+            <div key={title} className={`rounded-2xl p-6 ${bg}`}>
+              <div className="mb-4">{icon}</div>
+              <h3 className="font-semibold text-base mb-2">{title}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Component Grid */}
-      <section className="mx-auto max-w-7xl px-6 pb-20">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Separator className="mx-auto max-w-6xl" />
 
-          {/* Buttons */}
-          {(activeCategory === "All" || activeCategory === "Inputs") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Button</CardTitle>
-                </div>
-                <CardDescription>All variants and sizes</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                <Button size="sm">Default</Button>
-                <Button size="sm" variant="secondary">Secondary</Button>
-                <Button size="sm" variant="outline">Outline</Button>
-                <Button size="sm" variant="ghost">Ghost</Button>
-                <Button size="sm" variant="destructive">Destructive</Button>
-                <Button size="sm" variant="link">Link</Button>
-              </CardContent>
-            </Card>
-          )}
+      {/* ── Albums & Eras ── */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-3">Explore by Album & Era</h2>
+          <p className="text-slate-500 max-w-xl mx-auto">
+            Content organized by Taylor's iconic albums and tours. Find inspiration from your favorite era.
+          </p>
+        </div>
 
-          {/* Badge */}
-          {(activeCategory === "All" || activeCategory === "Display") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Badge</CardTitle>
-                </div>
-                <CardDescription>Status and label indicators</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                <Badge>Default</Badge>
-                <Badge variant="secondary">Secondary</Badge>
-                <Badge variant="outline">Outline</Badge>
-                <Badge variant="destructive">Destructive</Badge>
-                <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Success</Badge>
-                <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">Warning</Badge>
-              </CardContent>
-            </Card>
-          )}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {eras.map((era) => (
+            <a
+              key={era.title}
+              href={`/browse?album=${era.slug}`}
+              className={`group rounded-2xl border p-6 ${era.bg} hover:shadow-md transition-all hover:-translate-y-0.5`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className={`${era.color}`}>{era.icon}</div>
+                <ChevronRight className={`h-4 w-4 ${era.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
+              </div>
+              <h3 className={`font-bold text-lg mb-1 ${era.color}`}>{era.title}</h3>
+              <p className="text-sm text-slate-500 mb-3">{era.description}</p>
+              <div className="flex items-center gap-2">
+                <div className={`h-1.5 w-24 rounded-full bg-gradient-to-r ${era.gradient} opacity-60`} />
+                <span className="text-xs text-slate-400">0 pieces</span>
+              </div>
+            </a>
+          ))}
+        </div>
 
-          {/* Avatar */}
-          {(activeCategory === "All" || activeCategory === "Display") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Avatar</CardTitle>
-                </div>
-                <CardDescription>User profile images</CardDescription>
-              </CardHeader>
-              <CardContent className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-                <Avatar>
-                  <AvatarImage src="https://github.com/radix-ui.png" />
-                  <AvatarFallback>RU</AvatarFallback>
-                </Avatar>
-                <Avatar>
-                  <AvatarFallback className="bg-violet-100 text-violet-700">AB</AvatarFallback>
-                </Avatar>
-                <Avatar>
-                  <AvatarFallback className="bg-pink-100 text-pink-700">JD</AvatarFallback>
-                </Avatar>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Input & Label */}
-          {(activeCategory === "All" || activeCategory === "Inputs") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Input</CardTitle>
-                </div>
-                <CardDescription>Text input fields</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-1">
-                  <Label>Email</Label>
-                  <Input placeholder="you@example.com" type="email" />
-                </div>
-                <div className="space-y-1">
-                  <Label>Password</Label>
-                  <Input placeholder="••••••••" type="password" />
-                </div>
-                <Input placeholder="Disabled input" disabled />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Select */}
-          {(activeCategory === "All" || activeCategory === "Inputs") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Select</CardTitle>
-                </div>
-                <CardDescription>Dropdown selection</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a fruit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="apple">Apple</SelectItem>
-                    <SelectItem value="banana">Banana</SelectItem>
-                    <SelectItem value="mango">Mango</SelectItem>
-                    <SelectItem value="orange">Orange</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select disabled>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Disabled" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="x">x</SelectItem>
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Textarea */}
-          {(activeCategory === "All" || activeCategory === "Inputs") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Textarea</CardTitle>
-                </div>
-                <CardDescription>Multi-line text input</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-1">
-                  <Label>Your message</Label>
-                  <Textarea placeholder="Type your message here..." rows={3} />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Checkbox & Switch */}
-          {(activeCategory === "All" || activeCategory === "Inputs") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Checkbox & Switch</CardTitle>
-                </div>
-                <CardDescription>Toggle controls</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Checkbox id="terms" defaultChecked />
-                  <Label htmlFor="terms">Accept terms and conditions</Label>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Checkbox id="newsletter" />
-                  <Label htmlFor="newsletter">Subscribe to newsletter</Label>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <Label>Notifications</Label>
-                  <Switch checked={switchOn} onCheckedChange={setSwitchOn} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label>Dark mode</Label>
-                  <Switch />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Progress & Slider */}
-          {(activeCategory === "All" || activeCategory === "Feedback") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Progress & Slider</CardTitle>
-                </div>
-                <CardDescription>Range and progress indicators</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progress</span>
-                    <span>{progress}%</span>
-                  </div>
-                  <Progress value={progress} />
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => setProgress(Math.max(0, progress - 10))}>-10</Button>
-                    <Button size="sm" variant="outline" onClick={() => setProgress(Math.min(100, progress + 10))}>+10</Button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Slider</span>
-                    <span>{sliderValue[0]}</span>
-                  </div>
-                  <Slider
-                    value={sliderValue}
-                    onValueChange={setSliderValue}
-                    max={100}
-                    step={1}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Alert */}
-          {(activeCategory === "All" || activeCategory === "Feedback") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Alert</CardTitle>
-                </div>
-                <CardDescription>Inline feedback messages</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Alert>
-                  <Bell className="h-4 w-4" />
-                  <AlertTitle>Heads up!</AlertTitle>
-                  <AlertDescription>You can add components to your app using the CLI.</AlertDescription>
-                </Alert>
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>Your session has expired. Please log in again.</AlertDescription>
-                </Alert>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Tabs */}
-          {(activeCategory === "All" || activeCategory === "Layout") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Tabs</CardTitle>
-                </div>
-                <CardDescription>Tabbed content sections</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="account">
-                  <TabsList className="w-full">
-                    <TabsTrigger value="account" className="flex-1">Account</TabsTrigger>
-                    <TabsTrigger value="password" className="flex-1">Password</TabsTrigger>
-                    <TabsTrigger value="settings" className="flex-1">Settings</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="account" className="mt-3 text-sm text-slate-500">
-                    Manage your account details and preferences here.
-                  </TabsContent>
-                  <TabsContent value="password" className="mt-3 text-sm text-slate-500">
-                    Change your password and security settings.
-                  </TabsContent>
-                  <TabsContent value="settings" className="mt-3 text-sm text-slate-500">
-                    Configure application-wide settings and options.
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Accordion */}
-          {(activeCategory === "All" || activeCategory === "Layout") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Accordion</CardTitle>
-                </div>
-                <CardDescription>Collapsible content panels</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="item-1">
-                    <AccordionTrigger>Is it accessible?</AccordionTrigger>
-                    <AccordionContent>Yes. Adheres to the WAI-ARIA design pattern.</AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="item-2">
-                    <AccordionTrigger>Is it styled?</AccordionTrigger>
-                    <AccordionContent>Yes. Comes with default styles that match the other components.</AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="item-3">
-                    <AccordionTrigger>Is it animated?</AccordionTrigger>
-                    <AccordionContent>Yes. It's animated by default, but you can disable it if you prefer.</AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Card */}
-          {(activeCategory === "All" || activeCategory === "Display") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Card</CardTitle>
-                </div>
-                <CardDescription>Content container with sections</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Card className="border-violet-100">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-violet-600" />
-                      Notification
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-sm text-slate-500">
-                    You have a new message from the team.
-                  </CardContent>
-                  <CardFooter className="gap-2 pt-0">
-                    <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white">
-                      <Check className="mr-1 h-3 w-3" /> Mark read
-                    </Button>
-                    <Button size="sm" variant="outline">Dismiss</Button>
-                  </CardFooter>
-                </Card>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Toggle & Tooltip */}
-          {(activeCategory === "All" || activeCategory === "Inputs") && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-violet-600" />
-                  <CardTitle className="text-base">Toggle & Tooltip</CardTitle>
-                </div>
-                <CardDescription>Interactive controls with hints</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  <Toggle variant="outline" aria-label="Bold">
-                    <span className="font-bold text-sm">B</span>
-                  </Toggle>
-                  <Toggle variant="outline" aria-label="Italic">
-                    <span className="italic text-sm">I</span>
-                  </Toggle>
-                  <Toggle variant="outline" aria-label="Underline">
-                    <span className="underline text-sm">U</span>
-                  </Toggle>
-                </div>
-                <Separator />
-                <TooltipProvider>
-                  <div className="flex gap-3 flex-wrap">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="outline" size="sm">Hover me</Button>
-                      </TooltipTrigger>
-                      <TooltipContent>This is a tooltip!</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white">
-                          <Palette className="mr-2 h-3 w-3" /> Styled
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>A styled button with icon</TooltipContent>
-                    </Tooltip>
-                  </div>
-                </TooltipProvider>
-              </CardContent>
-            </Card>
-          )}
-
+        <div className="text-center mt-8">
+          <Button variant="outline" className="border-slate-300">
+            View All Albums <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t bg-white py-8">
-        <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-600 text-white">
-              <Sparkles className="h-4 w-4" />
+      <Separator className="mx-auto max-w-6xl" />
+
+      {/* ── Colbert Book Project ── */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-violet-950 to-slate-900 text-white overflow-hidden">
+          <div className="grid lg:grid-cols-2 gap-0">
+            {/* Left */}
+            <div className="p-10 lg:p-14">
+              <Badge className="mb-4 bg-white/10 text-pink-300 border-white/10 hover:bg-white/10">
+                Special Project
+              </Badge>
+              <h2 className="text-3xl lg:text-4xl font-extrabold mb-4 leading-tight">
+                The Colbert{" "}
+                <span className="bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent">
+                  Book Project
+                </span>
+              </h2>
+              <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+                Inspired by Taylor Swift's appearance on The Late Show with Stephen Colbert in December 2025 — a collaborative storytelling experience where Swifties bring Taylor's gothic mystery outline to life.
+              </p>
+              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                Key Themes
+              </h3>
+              <ul className="space-y-2 mb-8">
+                {[
+                  "An old, rambling British mansion covered in moss or ivy",
+                  "A mysterious relationship — he may not be what he seems",
+                  "A murder in the past, whispered about but never resolved",
+                  "The possibility of a ghost — or an actual ghost",
+                  "A family compound on an island off the coast of Maine",
+                  "Deep family secrets",
+                  "A brother who disappeared for ten years and suddenly returns",
+                ].map((theme) => (
+                  <li key={theme} className="flex items-start gap-2 text-sm text-slate-300">
+                    <Star className="h-3.5 w-3.5 mt-0.5 flex-shrink-0 fill-pink-400 text-pink-400" />
+                    {theme}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button className="bg-pink-500 hover:bg-pink-600 text-white shadow">
+                  <Feather className="mr-2 h-4 w-4" /> Write Your Chapter
+                </Button>
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 hover:text-white">
+                  Read Contributions
+                </Button>
+              </div>
             </div>
-            <span className="text-sm font-semibold">showgirl<span className="text-violet-600">stories</span></span>
-          </div>
-          <p className="text-sm text-slate-400">
-            Built with shadcn/ui · Radix UI · Tailwind CSS
-          </p>
-          <div className="flex gap-4 text-sm text-slate-400">
-            <a href="#" className="hover:text-slate-700 transition-colors">GitHub</a>
-            <a href="#" className="hover:text-slate-700 transition-colors">Docs</a>
-            <a href="#" className="hover:text-slate-700 transition-colors">License</a>
+
+            {/* Right — plot twist card */}
+            <div className="p-10 lg:p-14 flex flex-col justify-center gap-6 border-t lg:border-t-0 lg:border-l border-white/10">
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Moon className="h-4 w-4 text-violet-400" />
+                  <span className="text-xs font-semibold text-violet-400 uppercase tracking-wider">The Plot Twist</span>
+                </div>
+                <p className="text-lg font-semibold text-white mb-1">Unreliable narrator</p>
+                <p className="text-slate-400 text-sm">She is the psychopath.</p>
+              </div>
+
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <BookOpen className="h-4 w-4 text-pink-400" />
+                  <span className="text-xs font-semibold text-pink-400 uppercase tracking-wider">Additional Elements</span>
+                </div>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  {[
+                    "A mistress who is actually related to the family",
+                    "Someone falls off a cliff",
+                    "The family does not actually own the island",
+                    "Their father was really his twin brother",
+                    "The father died in a mysterious drowning",
+                  ].map((el) => (
+                    <li key={el} className="flex items-start gap-2">
+                      <span className="text-pink-400 mt-0.5">·</span> {el}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
+
+      <Separator className="mx-auto max-w-6xl" />
+
+      {/* ── Content types ── */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-3">Three Ways to Create</h2>
+          <p className="text-slate-500 max-w-xl mx-auto">
+            Express your love for Taylor's music through the medium that speaks to you.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-3 gap-6">
+          {[
+            {
+              icon: <Feather className="h-8 w-8 text-violet-500" />,
+              label: "Poems",
+              desc: "Lyrical verses and free-form poetry inspired by Taylor's storytelling.",
+              gradient: "from-violet-500 to-purple-700",
+              bg: "bg-violet-50",
+            },
+            {
+              icon: <BookOpen className="h-8 w-8 text-pink-500" />,
+              label: "Stories",
+              desc: "Short fiction, fan fiction, and prose rooted in Taylor's universe.",
+              gradient: "from-pink-500 to-rose-700",
+              bg: "bg-pink-50",
+            },
+            {
+              icon: <Film className="h-8 w-8 text-amber-500" />,
+              label: "Videos",
+              desc: "Fan edits, covers, spoken word — creativity in motion.",
+              gradient: "from-amber-400 to-orange-600",
+              bg: "bg-amber-50",
+            },
+          ].map(({ icon, label, desc, gradient, bg }) => (
+            <div key={label} className={`rounded-2xl ${bg} p-8 text-center`}>
+              <div className="flex justify-center mb-4">{icon}</div>
+              <h3 className="text-xl font-bold mb-2">{label}</h3>
+              <p className="text-sm text-slate-500 leading-relaxed mb-5">{desc}</p>
+              <div className={`h-1 w-12 rounded-full bg-gradient-to-r ${gradient} mx-auto`} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Separator className="mx-auto max-w-6xl" />
+
+      {/* ── Membership ── */}
+      <section className="mx-auto max-w-6xl px-6 py-20" id="membership">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-3">Choose Your Membership</h2>
+          <p className="text-slate-500 max-w-xl mx-auto">
+            Join free or upgrade to unlock unlimited posting and exclusive features.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {plans.map((plan) => (
+            <Card
+              key={plan.name}
+              className={`relative flex flex-col rounded-2xl ${
+                plan.highlighted
+                  ? "border-2 border-violet-500 shadow-lg shadow-violet-100"
+                  : "border border-slate-200"
+              }`}
+            >
+              {plan.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <Badge className={plan.highlighted ? "bg-violet-600 text-white" : "bg-slate-700 text-white"}>
+                    {plan.badge}
+                  </Badge>
+                </div>
+              )}
+              <CardHeader className="pb-2 pt-7">
+                <div className="flex items-center gap-2 mb-1">
+                  <Music className="h-4 w-4 text-violet-400" />
+                  <CardTitle className="text-base font-bold">{plan.name}</CardTitle>
+                </div>
+                <div className="flex items-end gap-1">
+                  <span className="text-3xl font-extrabold">${plan.price}</span>
+                  <span className="text-sm text-slate-400 mb-1">{plan.period}</span>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">{plan.tagline}</p>
+              </CardHeader>
+              <CardContent className="flex flex-col flex-1 gap-4">
+                <Separator />
+                <ul className="space-y-2 flex-1">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm">
+                      <Check className="h-4 w-4 text-violet-500 mt-0.5 flex-shrink-0" />
+                      <span className="text-slate-600">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className={`w-full mt-2 ${
+                    plan.highlighted
+                      ? "bg-violet-600 hover:bg-violet-700 text-white"
+                      : "variant-outline"
+                  }`}
+                  variant={plan.highlighted ? "default" : "outline"}
+                >
+                  {plan.cta}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Final CTA ── */}
+      <section className="bg-gradient-to-br from-violet-600 to-pink-600 text-white">
+        <div className="mx-auto max-w-3xl px-6 py-20 text-center">
+          <Heart className="mx-auto mb-4 h-8 w-8 fill-white text-white opacity-80" />
+          <p className="text-sm uppercase tracking-widest mb-3 opacity-80">Made by Swifties, for Swifties</p>
+          <h2 className="text-4xl font-extrabold mb-4">Ready to Share Your Story?</h2>
+          <p className="text-violet-100 text-lg mb-8 max-w-xl mx-auto">
+            Join thousands of Taylor Swift fans sharing their creative works. Your story is waiting to be told.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button size="lg" className="bg-white text-violet-700 hover:bg-violet-50 shadow-md px-8 font-semibold">
+              Join Now — It's Free
+            </Button>
+            <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 hover:text-white px-8">
+              Browse Content
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="bg-slate-900 text-slate-400">
+        <div className="mx-auto max-w-6xl px-6 py-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-pink-500 text-white">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <span className="text-sm font-bold text-white">Stories For A Showgirl</span>
+            </div>
+            <p className="text-sm leading-relaxed">
+              A community for Taylor Swift fans to share their creative works inspired by Taylor and her music.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Explore</h4>
+            <ul className="space-y-2 text-sm">
+              {["Browse Content", "Albums & Eras", "Colbert Book Project"].map((l) => (
+                <li key={l}><a href="#" className="hover:text-white transition-colors">{l}</a></li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Membership</h4>
+            <ul className="space-y-2 text-sm">
+              {["Pricing", "Gift a Membership"].map((l) => (
+                <li key={l}><a href="#" className="hover:text-white transition-colors">{l}</a></li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Legal</h4>
+            <ul className="space-y-2 text-sm">
+              {["Terms of Service", "Privacy Policy", "Copyright Policy"].map((l) => (
+                <li key={l}><a href="#" className="hover:text-white transition-colors">{l}</a></li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-800 mx-auto max-w-6xl px-6 py-5 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-600">
+          <span>Made with ♥ by Swifties, for Swifties</span>
+          <span>This is a fan community. Not affiliated with Taylor Swift or Taylor Nation.</span>
+        </div>
       </footer>
+
     </div>
   );
 };
