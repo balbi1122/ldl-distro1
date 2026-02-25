@@ -52,6 +52,7 @@ const contentTypes = [
 
 /* ─── Form state type ─────────────────────────────────────── */
 interface FormState {
+  name: string;
   title: string;
   contentType: string;
   era: string;
@@ -66,6 +67,7 @@ interface FormState {
 }
 
 const defaultForm: FormState = {
+  name: "",
   title: "",
   contentType: "",
   era: "",
@@ -94,6 +96,7 @@ const SubmitPage: React.FC = () => {
   /* validation */
   const validate = (): boolean => {
     const e: Partial<Record<keyof FormState, string>> = {};
+    if (!form.name.trim()) e.name = "Please enter your name.";
     if (!form.title.trim()) e.title = "Please enter a title.";
     if (!form.contentType) e.contentType = "Please choose a content type.";
     if (!form.era) e.era = "Please choose an album or era.";
@@ -138,7 +141,9 @@ const SubmitPage: React.FC = () => {
               <CheckCircle2 className="h-10 w-10 text-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-extrabold mb-3 text-slate-900">You're a Showgirl! ✨</h1>
+          <h1 className="text-3xl font-extrabold mb-3 text-slate-900">
+            {form.name.trim() ? `${form.name.trim()}, you're a Star!` : "You're a Star!"} ⭐
+          </h1>
           <p className="text-slate-500 mb-8 text-lg">
             Your <span className="font-semibold text-violet-600">{form.contentType}</span>{" "}
             "<span className="italic">{form.title}</span>" has been submitted and is pending review.
@@ -236,6 +241,26 @@ const SubmitPage: React.FC = () => {
                   <AlertCircle className="h-3 w-3" /> {errors.contentType}
                 </p>
               )}
+            </div>
+
+            {/* Name */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
+              <h2 className="font-semibold text-base flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-violet-500" /> Your Name
+              </h2>
+              <div className="space-y-1">
+                <Input
+                  placeholder="How should we credit you?"
+                  value={form.name}
+                  onChange={(e) => { set("name", e.target.value); clearError("name"); }}
+                  className={errors.name ? "border-red-400 focus-visible:ring-red-300" : ""}
+                />
+                {errors.name && (
+                  <p className="text-xs text-red-500 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" /> {errors.name}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Title */}
