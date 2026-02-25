@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -149,6 +150,7 @@ const plans = [
 /* ─── Component ────────────────────────────────────────────────── */
 const Home: React.FC = () => {
   const [activeNav, setActiveNav] = useState("");
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans">
@@ -190,7 +192,7 @@ const Home: React.FC = () => {
             <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
               Sign In
             </Button>
-            <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white shadow-sm">
+            <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white shadow-sm" onClick={() => navigate("/submit")}>
               Start Writing
             </Button>
           </div>
@@ -238,6 +240,7 @@ const Home: React.FC = () => {
             <Button
               size="lg"
               className="bg-violet-600 hover:bg-violet-700 text-white shadow-md px-8"
+              onClick={() => navigate("/submit")}
             >
               <Feather className="mr-2 h-4 w-4" /> Start Writing
             </Button>
@@ -547,7 +550,7 @@ const Home: React.FC = () => {
             Join thousands of Taylor Swift fans sharing their creative works. Your story is waiting to be told.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-violet-700 hover:bg-violet-50 shadow-md px-8 font-semibold">
+            <Button size="lg" className="bg-white text-violet-700 hover:bg-violet-50 shadow-md px-8 font-semibold" onClick={() => navigate("/submit")}>
               Join Now — It's Free
             </Button>
             <Button size="lg" variant="outline" className="border-white/40 text-white hover:bg-white/10 hover:text-white px-8">
