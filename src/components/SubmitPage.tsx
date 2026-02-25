@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -24,10 +24,15 @@ import {
   ChevronLeft,
   Crown,
   Feather,
+  File,
+  FileText,
   Film,
   Moon,
+  Paperclip,
   Sparkles,
   TreePine,
+  Trash2,
+  UploadCloud,
   Waves,
   AlertCircle,
   Zap,
@@ -80,11 +85,36 @@ const defaultForm: FormState = {
   acceptsTerms: false,
 };
 
+const ACCEPTED_TYPES = [
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+const ACCEPTED_EXTS = ".pdf,.doc,.docx";
+const MAX_FILE_MB = 10;
+
+function fileIcon(file: File) {
+  if (file.type === "application/pdf")
+    return <FileText className="h-5 w-5 text-red-500" />;
+  return <File className="h-5 w-5 text-blue-500" />;
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 /* ─── Component ───────────────────────────────────────────── */
 const SubmitPage: React.FC = () => {
   const [form, setForm] = useState<FormState>(defaultForm);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [inputMode, setInputMode] = useState<"type" | "upload">("type");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string>("");
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   /* helpers */
   const set = (field: keyof FormState, value: string | boolean) =>
@@ -92,6 +122,32 @@ const SubmitPage: React.FC = () => {
 
   const clearError = (field: keyof FormState) =>
     setErrors((prev) => { const next = { ...prev }; delete next[field]; return next; });
+
+  const handleFile = (file: File) => {
+    setFileError("");
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setFileError("Only PDF, DOC, or DOCX files are accepted.");
+      return;
+    }
+    if (file.size > MAX_FILE_MB * 1024 * 1024) {
+      setFileError(`File must be under ${MAX_FILE_MB} MB.`);
+      return;
+    }
+    setUploadedFile(file);
+  };
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+    e.target.value = "";
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  };
 
   /* validation */
   const validate = (): boolean => {
@@ -102,6 +158,8 @@ const SubmitPage: React.FC = () => {
     if (!form.era) e.era = "Please choose an album or era.";
     if (form.contentType === "video") {
       if (!form.videoUrl.trim()) e.videoUrl = "Please provide a video URL.";
+    } else if (inputMode === "upload") {
+      if (!uploadedFile) e.body = "Please upload a PDF, DOC, or DOCX file.";
     } else {
       if (!form.body.trim()) e.body = "Please add some content.";
       else if (form.body.trim().length < 20) e.body = "Content must be at least 20 characters.";
@@ -129,6 +187,9 @@ const SubmitPage: React.FC = () => {
     setForm(defaultForm);
     setErrors({});
     setSubmitted(false);
+    setUploadedFile(null);
+    setFileError("");
+    setInputMode("type");
   };
 
   /* ─── Success screen ─── */
@@ -334,40 +395,139 @@ const SubmitPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
-                <h2 className="font-semibold text-base flex items-center gap-2">
-                  {form.contentType === "poem"
-                    ? <Feather className="h-4 w-4 text-violet-500" />
-                    : <BookOpen className="h-4 w-4 text-violet-500" />}
-                  {form.contentType === "poem" ? "Your Poem" : form.contentType === "story" ? "Your Story" : "Your Content"}
-                </h2>
-                <div className="space-y-1">
-                  <Textarea
-                    placeholder={
-                      form.contentType === "poem"
-                        ? "Write your poem here… Let the words flow like Taylor's lyrics."
-                        : form.contentType === "story"
-                        ? "Begin your story here… Every great tale starts with a single line."
-                        : "Write your content here…"
-                    }
-                    rows={12}
-                    value={form.body}
-                    onChange={(e) => { set("body", e.target.value); clearError("body"); }}
-                    className={`resize-none font-mono text-sm leading-relaxed ${errors.body ? "border-red-400 focus-visible:ring-red-300" : ""}`}
-                  />
-                  <div className="flex justify-between items-center">
-                    <div>
-                      {errors.body && (
-                        <p className="text-xs text-red-500 flex items-center gap-1">
-                          <AlertCircle className="h-3 w-3" /> {errors.body}
-                        </p>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-400 text-right">
-                      {form.body.length} characters
-                    </p>
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+                {/* Header + mode toggle */}
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <h2 className="font-semibold text-base flex items-center gap-2">
+                    {form.contentType === "poem"
+                      ? <Feather className="h-4 w-4 text-violet-500" />
+                      : <BookOpen className="h-4 w-4 text-violet-500" />}
+                    {form.contentType === "poem" ? "Your Poem" : form.contentType === "story" ? "Your Story" : "Your Content"}
+                  </h2>
+                  {/* Toggle tabs */}
+                  <div className="flex rounded-lg border border-slate-200 overflow-hidden text-sm">
+                    <button
+                      type="button"
+                      onClick={() => { setInputMode("type"); setFileError(""); clearError("body"); }}
+                      className={`px-4 py-1.5 font-medium transition-colors ${
+                        inputMode === "type"
+                          ? "bg-violet-600 text-white"
+                          : "bg-white text-slate-500 hover:bg-slate-50"
+                      }`}
+                    >
+                      ✏️ Type
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setInputMode("upload"); clearError("body"); }}
+                      className={`px-4 py-1.5 font-medium transition-colors flex items-center gap-1.5 ${
+                        inputMode === "upload"
+                          ? "bg-violet-600 text-white"
+                          : "bg-white text-slate-500 hover:bg-slate-50"
+                      }`}
+                    >
+                      <Paperclip className="h-3.5 w-3.5" /> Upload File
+                    </button>
                   </div>
                 </div>
+
+                {/* Type mode */}
+                {inputMode === "type" && (
+                  <div className="space-y-1">
+                    <Textarea
+                      placeholder={
+                        form.contentType === "poem"
+                          ? "Write your poem here… Let the words flow like Taylor's lyrics."
+                          : form.contentType === "story"
+                          ? "Begin your story here… Every great tale starts with a single line."
+                          : "Write your content here…"
+                      }
+                      rows={12}
+                      value={form.body}
+                      onChange={(e) => { set("body", e.target.value); clearError("body"); }}
+                      className={`resize-none font-mono text-sm leading-relaxed ${errors.body ? "border-red-400 focus-visible:ring-red-300" : ""}`}
+                    />
+                    <div className="flex justify-between items-center">
+                      <div>
+                        {errors.body && (
+                          <p className="text-xs text-red-500 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" /> {errors.body}
+                          </p>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400 text-right">{form.body.length} characters</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload mode */}
+                {inputMode === "upload" && (
+                  <div className="space-y-3">
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept={ACCEPTED_EXTS}
+                      onChange={handleFileInput}
+                      className="hidden"
+                    />
+
+                    {!uploadedFile ? (
+                      /* Drop zone */
+                      <div
+                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={handleDrop}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`cursor-pointer rounded-xl border-2 border-dashed p-10 text-center transition-all ${
+                          dragOver
+                            ? "border-violet-500 bg-violet-50"
+                            : errors.body
+                            ? "border-red-300 bg-red-50"
+                            : "border-slate-300 bg-slate-50 hover:border-violet-400 hover:bg-violet-50/50"
+                        }`}
+                      >
+                        <UploadCloud className={`mx-auto h-10 w-10 mb-3 ${dragOver ? "text-violet-500" : "text-slate-300"}`} />
+                        <p className="text-sm font-semibold text-slate-700 mb-1">
+                          Drop your file here, or <span className="text-violet-600">browse</span>
+                        </p>
+                        <p className="text-xs text-slate-400">PDF, DOC, DOCX — max {MAX_FILE_MB} MB</p>
+                      </div>
+                    ) : (
+                      /* File preview */
+                      <div className="rounded-xl border border-violet-200 bg-violet-50 p-4 flex items-center gap-3">
+                        <div className="flex-shrink-0">{fileIcon(uploadedFile)}</div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-800 truncate">{uploadedFile.name}</p>
+                          <p className="text-xs text-slate-400">{formatBytes(uploadedFile.size)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setUploadedFile(null); setFileError(""); }}
+                          className="flex-shrink-0 h-7 w-7 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 transition-colors"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+
+                    {fileError && (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" /> {fileError}
+                      </p>
+                    )}
+                    {errors.body && !uploadedFile && (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" /> {errors.body}
+                      </p>
+                    )}
+
+                    <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                      <Paperclip className="h-3 w-3" />
+                      Your file will be stored securely and only visible to reviewers until approved.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
