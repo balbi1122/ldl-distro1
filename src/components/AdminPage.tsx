@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 import {
   Select,
@@ -11,585 +12,676 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Textarea } from "./ui/textarea";
 import {
-  AlertCircle,
-  BookOpen,
-  Check,
+  Zap,
   ChevronLeft,
-  Database,
-  Feather,
-  Film,
-  Filter,
-  HardDrive,
-  Info,
-  Lock,
-  Mail,
-  Moon,
-  Search,
-  Server,
-  ShieldCheck,
-  Sparkles,
-  ThumbsDown,
-  ThumbsUp,
-  Trash2,
+  ChevronDown,
+  ChevronUp,
   Users,
-  X,
+  Clock,
+  TrendingUp,
+  CheckCircle,
+  Trash2,
+  Phone,
+  Mail,
+  Search,
+  Info,
 } from "lucide-react";
+import { LoanLead, LoanLeadStatus, LoanType } from "@/services/LoanService";
 
-/* ─── Mock submission data ──────────────────────────────────── */
-type Status = "pending" | "approved" | "rejected";
+// ─── Mock Data ────────────────────────────────────────────────────────────────
 
-interface Submission {
-  id: string;
-  title: string;
-  contentType: "poem" | "story" | "video";
-  era: string;
-  author: string;
-  email: string;
-  body: string;
-  aiAssisted: boolean;
-  status: Status;
-  submittedAt: string;
-}
-
-const mockSubmissions: Submission[] = [
+const MOCK_LEADS: LoanLead[] = [
   {
-    id: "sub_001",
-    title: "Midnights on the Rooftop",
-    contentType: "poem",
-    era: "Midnights",
-    author: "Emily R.",
-    email: "emily@swiftie.com",
-    body: "Under the 3am glow, I wrote your name in the frost of my window...",
-    aiAssisted: false,
-    status: "pending",
-    submittedAt: "2026-02-24T09:15:00Z",
+    id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    loan_type: "fix_flip",
+    full_name: "Marcus Thompson",
+    email: "marcus.t@email.com",
+    phone: "(512) 555-0192",
+    property_address: "4821 Oak Ridge Blvd, Austin, TX 78745",
+    property_type: "single_family",
+    property_state: "Texas",
+    estimated_value: "250k_500k",
+    purchase_price: "250k_500k",
+    rehab_budget: "100k_250k",
+    after_repair_value: "500k_1m",
+    loan_amount: "250k_500k",
+    estimated_ltv: "75_80",
+    timeline: "asap",
+    credit_score_range: "700_749",
+    real_estate_experience: "first_time",
+    status: "new",
+    created_at: "2026-04-01T14:32:00Z",
+    notes: "",
   },
   {
-    id: "sub_002",
-    title: "The Girl Who Lived in the Ivy House",
-    contentType: "story",
-    era: "Colbert Book Project",
-    author: "Marcus T.",
-    email: "marcus@fans.net",
-    body: "She arrived on a Tuesday in November, when the island fog was so thick you could lose your reflection in it...",
-    aiAssisted: true,
-    status: "pending",
-    submittedAt: "2026-02-24T10:42:00Z",
+    id: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    loan_type: "dscr",
+    full_name: "Jennifer Rodriguez",
+    email: "jrodriguez@realty.com",
+    phone: "(305) 555-0847",
+    property_address: "1102 Sunset Drive, Miami, FL 33101",
+    property_type: "single_family",
+    property_state: "Florida",
+    estimated_value: "500k_1m",
+    purchase_price: "500k_1m",
+    monthly_rent: "$4,200/month",
+    loan_amount: "500k_1m",
+    estimated_ltv: "70_75",
+    timeline: "1_month",
+    credit_score_range: "750_plus",
+    real_estate_experience: "4_10_deals",
+    status: "contacted",
+    created_at: "2026-03-30T09:15:00Z",
+    contacted_at: "2026-03-30T11:00:00Z",
+    notes: "Borrower has a strong portfolio. Requested 30-yr fixed rate sheet.",
   },
   {
-    id: "sub_003",
-    title: "Cardigan — A Fan Cover",
-    contentType: "video",
-    era: "Folklore",
-    author: "Sofia L.",
-    email: "sofia@creative.io",
-    body: "https://youtube.com/watch?v=example123",
-    aiAssisted: false,
-    status: "approved",
-    submittedAt: "2026-02-23T14:00:00Z",
+    id: "c3d4e5f6-a7b8-9012-cdef-123456789012",
+    loan_type: "ground_up",
+    full_name: "David Kim",
+    email: "david.kim@buildpro.net",
+    phone: "(678) 555-0334",
+    property_address: "Lot 14, Peachtree Estates, Atlanta, GA 30301",
+    property_type: "single_family",
+    property_state: "Georgia",
+    estimated_value: "500k_1m",
+    purchase_price: "100k_250k",
+    lot_owned: true,
+    construction_budget: "250k_500k",
+    loan_amount: "250k_500k",
+    estimated_ltv: "80_85",
+    timeline: "2_3_months",
+    credit_score_range: "700_749",
+    real_estate_experience: "4_10_deals",
+    status: "in_progress",
+    created_at: "2026-03-28T16:45:00Z",
+    notes: "Blueprints submitted. Appraiser scheduled for April 10.",
   },
   {
-    id: "sub_004",
-    title: "1989 Polaroid Dreams",
-    contentType: "poem",
-    era: "1989",
-    author: "Jake W.",
-    email: "jake@poetry.me",
-    body: "Shake it off, they said, but the polaroids never fade...",
-    aiAssisted: false,
-    status: "approved",
-    submittedAt: "2026-02-22T16:30:00Z",
+    id: "d4e5f6a7-b8c9-0123-defa-234567890123",
+    loan_type: "fix_flip",
+    full_name: "Sarah O'Brien",
+    email: "sarah.obrien@gmail.com",
+    phone: "(847) 555-0561",
+    property_address: "2034 N. Maple Ave, Chicago, IL 60614",
+    property_type: "multi_family",
+    property_state: "Illinois",
+    estimated_value: "500k_1m",
+    purchase_price: "500k_1m",
+    rehab_budget: "100k_250k",
+    after_repair_value: "1m_2m",
+    loan_amount: "500k_1m",
+    estimated_ltv: "70_75",
+    timeline: "asap",
+    credit_score_range: "650_699",
+    real_estate_experience: "1_3_deals",
+    status: "closed",
+    created_at: "2026-03-15T10:00:00Z",
+    notes: "Closed March 25. 12-day close. Smooth process.",
   },
   {
-    id: "sub_005",
-    title: "The Twin's Secret — Chapter 1",
-    contentType: "story",
-    era: "Colbert Book Project",
-    author: "Anon",
-    email: "anon@showgirl.com",
-    body: "Nobody talked about what happened to Father. Not openly. Not on the island.",
-    aiAssisted: true,
-    status: "rejected",
-    submittedAt: "2026-02-21T11:00:00Z",
+    id: "e5f6a7b8-c9d0-1234-efab-345678901234",
+    loan_type: "dscr",
+    full_name: "Robert Chen",
+    email: "r.chen@propinvest.io",
+    phone: "(415) 555-0723",
+    property_address: "889 Market St Unit 4B, San Francisco, CA 94103",
+    property_type: "condo",
+    property_state: "California",
+    estimated_value: "1m_2m",
+    purchase_price: "1m_2m",
+    monthly_rent: "$5,800/month",
+    loan_amount: "1m_plus",
+    estimated_ltv: "65_70",
+    timeline: "2_3_months",
+    credit_score_range: "750_plus",
+    real_estate_experience: "10_plus_deals",
+    status: "lost",
+    created_at: "2026-03-20T13:30:00Z",
+    notes: "Borrower went with a local bank at lower rate. Keep in pipeline for future deals.",
   },
 ];
 
-/* ─── Storage architecture info ─────────────────────────────── */
-const storageInfo = [
-  {
-    icon: <Database className="h-5 w-5 text-violet-500" />,
-    title: "Supabase PostgreSQL",
-    subtitle: "Primary content store",
-    description:
-      "All submission data — title, author, content body, era, status, timestamps — is saved to a `submissions` table in your Supabase PostgreSQL database. Supabase is already wired into this project.",
-    table: "submissions",
-    color: "border-violet-200 bg-violet-50",
-    fields: ["id", "title", "content_type", "era", "body", "author_id", "status", "created_at", "ai_assisted"],
-  },
-  {
-    icon: <HardDrive className="h-5 w-5 text-sky-500" />,
-    title: "Supabase Storage",
-    subtitle: "Media & file uploads",
-    description:
-      "Video thumbnails, images, or any file attachments uploaded by members are stored in a Supabase Storage bucket called `content-media`. Files get a public URL you can embed anywhere on the site.",
-    table: "content-media bucket",
-    color: "border-sky-200 bg-sky-50",
-    fields: ["video thumbnails", "cover images", "attachments"],
-  },
-  {
-    icon: <Mail className="h-5 w-5 text-amber-500" />,
-    title: "SendGrid",
-    subtitle: "Email notifications",
-    description:
-      "When a member submits content, SendGrid sends a confirmation to the member and a review alert to the admin email. SendGrid is already configured in this project.",
-    table: "Email logs",
-    color: "border-amber-200 bg-amber-50",
-    fields: ["submission_confirmed (member)", "review_alert (admin)"],
-  },
-  {
-    icon: <Server className="h-5 w-5 text-emerald-500" />,
-    title: "Supabase Auth",
-    subtitle: "Member identity",
-    description:
-      "Each submission is linked to an authenticated Supabase user via `author_id`. Supabase Auth handles sign-up, sign-in, and session management. The admin area uses a separate admin role in Supabase Row Level Security.",
-    table: "auth.users",
-    color: "border-emerald-200 bg-emerald-50",
-    fields: ["user_id", "email", "role", "membership_tier"],
-  },
-];
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/* ─── Helpers ────────────────────────────────────────────────── */
-const statusColors: Record<Status, string> = {
-  pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  approved: "bg-green-100 text-green-700 border-green-200",
-  rejected: "bg-red-100 text-red-700 border-red-200",
+const LOAN_TYPE_LABELS: Record<LoanType, string> = {
+  dscr: "DSCR Rental",
+  fix_flip: "Fix & Flip",
+  ground_up: "Ground-Up",
 };
 
-const typeIcon = (t: string) => {
-  if (t === "poem") return <Feather className="h-3.5 w-3.5" />;
-  if (t === "story") return <BookOpen className="h-3.5 w-3.5" />;
-  return <Film className="h-3.5 w-3.5" />;
+const LOAN_TYPE_BADGE: Record<LoanType, string> = {
+  dscr: "bg-blue-100 text-blue-700 border-blue-200",
+  fix_flip: "bg-amber-100 text-amber-700 border-amber-200",
+  ground_up: "bg-green-100 text-green-700 border-green-200",
 };
 
-const fmt = (iso: string) =>
-  new Date(iso).toLocaleString("en-US", {
+const STATUS_LABELS: Record<LoanLeadStatus, string> = {
+  new: "New",
+  contacted: "Contacted",
+  in_progress: "In Progress",
+  closed: "Closed",
+  lost: "Lost",
+};
+
+const STATUS_BADGE: Record<LoanLeadStatus, string> = {
+  new: "bg-slate-100 text-slate-600 border-slate-200",
+  contacted: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  in_progress: "bg-blue-100 text-blue-700 border-blue-200",
+  closed: "bg-green-100 text-green-700 border-green-200",
+  lost: "bg-red-100 text-red-600 border-red-200",
+};
+
+const LOAN_AMOUNT_LABELS: Record<string, string> = {
+  "50k_100k": "$50k–$100k",
+  "100k_250k": "$100k–$250k",
+  "250k_500k": "$250k–$500k",
+  "500k_1m": "$500k–$1M",
+  "1m_plus": "$1M+",
+};
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
+}
 
-/* ─── Admin Login Gate ───────────────────────────────────────── */
-const ADMIN_PIN = "swiftie13";
+// ─── Login Gate ───────────────────────────────────────────────────────────────
 
-function LoginGate({ onLogin }: { onLogin: () => void }) {
-  const [pin, setPin] = useState("");
-  const [error, setError] = useState(false);
+const PASSWORD = "LiteDOC2024";
 
-  const attempt = (e: React.FormEvent) => {
+const LoginGate: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
+  const [pw, setPw] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin === ADMIN_PIN) {
+    if (pw === PASSWORD) {
       onLogin();
     } else {
-      setError(true);
-      setPin("");
+      setError("Incorrect password. Please try again.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-violet-950 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center shadow-lg">
-            <Lock className="h-8 w-8 text-white" />
+          <div className="inline-flex items-center justify-center h-14 w-14 rounded-xl bg-amber-500 mb-4">
+            <Zap className="h-7 w-7 text-slate-950 fill-slate-950" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">Admin Area</h1>
-          <p className="text-slate-400 text-sm">Stories For A Showgirl</p>
+          <h1 className="text-2xl font-extrabold text-white mb-1">
+            LiteDOC<span className="text-amber-400">.LOANS</span>
+          </h1>
+          <p className="text-slate-400 text-sm">Admin Portal</p>
         </div>
 
-        <form onSubmit={attempt} className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-          <div className="space-y-1.5">
-            <Label className="text-slate-300 text-sm">Admin Password</Label>
+        <form
+          onSubmit={handleSubmit}
+          className="bg-slate-900 rounded-2xl border border-slate-800 p-7 space-y-5"
+        >
+          <div>
+            <Label htmlFor="admin-password" className="text-sm font-semibold text-slate-300">
+              Password
+            </Label>
             <Input
+              id="admin-password"
               type="password"
-              placeholder="Enter admin password…"
-              value={pin}
-              onChange={(e) => { setPin(e.target.value); setError(false); }}
-              className="bg-white/10 border-white/20 text-white placeholder:text-slate-500 focus-visible:ring-violet-500"
+              placeholder="Enter admin password"
+              className="mt-1.5 bg-slate-800 border-slate-700 text-white placeholder:text-slate-500 focus:border-amber-500"
+              value={pw}
+              onChange={(e) => {
+                setPw(e.target.value);
+                setError("");
+              }}
               autoFocus
             />
-            {error && (
-              <p className="text-xs text-red-400 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" /> Incorrect password. Try again.
-              </p>
-            )}
+            {error && <p className="text-red-400 text-xs mt-1.5">{error}</p>}
           </div>
-          <Button type="submit" className="w-full bg-violet-600 hover:bg-violet-700 text-white">
-            <ShieldCheck className="mr-2 h-4 w-4" /> Sign In to Admin
+          <Button
+            type="submit"
+            className="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold"
+          >
+            Sign In
           </Button>
         </form>
-
-        <p className="text-center text-xs text-slate-600 mt-4">
-          ⚠️ Demo mode — replace with Supabase Auth in production
-        </p>
       </div>
     </div>
   );
+};
+
+// ─── Detail Item ──────────────────────────────────────────────────────────────
+
+const DetailItem: React.FC<{
+  label: string;
+  value?: string | null;
+  mono?: boolean;
+}> = ({ label, value, mono }) => (
+  <div>
+    <span className="text-xs text-slate-400 uppercase tracking-wide block mb-0.5">{label}</span>
+    <span className={`text-slate-700 text-sm ${mono ? "font-mono text-xs break-all" : "font-medium"}`}>
+      {value ?? "—"}
+    </span>
+  </div>
+);
+
+// ─── Lead Row ─────────────────────────────────────────────────────────────────
+
+interface LeadRowProps {
+  lead: LoanLead;
+  onStatusChange: (id: string, status: LoanLeadStatus) => void;
+  onNotesSave: (id: string, notes: string) => void;
+  onDelete: (id: string) => void;
+  savedId: string | null;
 }
 
-/* ─── Storage Info Modal ─────────────────────────────────────── */
-function StorageModal({ onClose }: { onClose: () => void }) {
+const LeadRow: React.FC<LeadRowProps> = ({
+  lead,
+  onStatusChange,
+  onNotesSave,
+  onDelete,
+  savedId,
+}) => {
+  const [expanded, setExpanded] = useState(false);
+  const [notes, setNotes] = useState(lead.notes ?? "");
+  const [localStatus, setLocalStatus] = useState<LoanLeadStatus>(lead.status);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const handleStatusChange = (val: string) => {
+    const s = val as LoanLeadStatus;
+    setLocalStatus(s);
+    onStatusChange(lead.id, s);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-slate-100">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Where Is Content Stored?</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Full storage architecture for Stories For A Showgirl</p>
+    <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
+      {/* Summary row */}
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          {/* Name / contact */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <span className="font-bold text-slate-900 text-base">{lead.full_name}</span>
+              <Badge className={`text-xs ${LOAN_TYPE_BADGE[lead.loan_type]}`}>
+                {LOAN_TYPE_LABELS[lead.loan_type]}
+              </Badge>
+              <Badge className={`text-xs ${STATUS_BADGE[localStatus]}`}>
+                {STATUS_LABELS[localStatus]}
+              </Badge>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-slate-500">
+              <a
+                href={`tel:${lead.phone}`}
+                className="flex items-center gap-1 hover:text-amber-600 transition-colors"
+              >
+                <Phone className="h-3 w-3" /> {lead.phone}
+              </a>
+              <a
+                href={`mailto:${lead.email}`}
+                className="flex items-center gap-1 hover:text-amber-600 transition-colors"
+              >
+                <Mail className="h-3 w-3" /> {lead.email}
+              </a>
+              {lead.property_state && <span>{lead.property_state}</span>}
+              {lead.loan_amount && (
+                <span>{LOAN_AMOUNT_LABELS[lead.loan_amount] ?? lead.loan_amount}</span>
+              )}
+              <span className="text-slate-400">{formatDate(lead.created_at)}</span>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
-          >
-            <X className="h-4 w-4 text-slate-600" />
-          </button>
-        </div>
 
-        <div className="p-6 space-y-4">
-          {storageInfo.map((s) => (
-            <div key={s.title} className={`rounded-2xl border p-5 ${s.color}`}>
-              <div className="flex items-start gap-4">
-                <div className="mt-0.5 flex-shrink-0">{s.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-bold text-slate-900">{s.title}</h3>
-                    <span className="text-xs text-slate-500 bg-white/70 rounded-full px-2 py-0.5 border">
-                      {s.subtitle}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed mb-3">{s.description}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {s.fields.map((f) => (
-                      <code key={f} className="text-xs bg-white/80 border border-slate-200 rounded px-2 py-0.5 text-slate-700 font-mono">
-                        {f}
-                      </code>
-                    ))}
-                  </div>
-                </div>
+          {/* Controls */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Select value={localStatus} onValueChange={handleStatusChange}>
+              <SelectTrigger className="h-8 w-36 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(STATUS_LABELS) as LoanLeadStatus[]).map((s) => (
+                  <SelectItem key={s} value={s} className="text-xs">
+                    {STATUS_LABELS[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-slate-400 hover:text-slate-700"
+              onClick={() => setExpanded((prev) => !prev)}
+              title={expanded ? "Collapse" : "Expand"}
+            >
+              {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+
+            {confirmDelete ? (
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="h-8 px-2 text-xs"
+                  onClick={() => onDelete(lead.id)}
+                >
+                  Confirm
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs"
+                  onClick={() => setConfirmDelete(false)}
+                >
+                  Cancel
+                </Button>
               </div>
-            </div>
-          ))}
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-            <h3 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
-              <Info className="h-4 w-4 text-slate-400" /> Supabase Table: <code className="font-mono text-violet-700">submissions</code>
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs font-mono text-slate-600">
-                <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-1.5 pr-4 text-slate-400 font-semibold">Column</th>
-                    <th className="text-left py-1.5 pr-4 text-slate-400 font-semibold">Type</th>
-                    <th className="text-left py-1.5 text-slate-400 font-semibold">Notes</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {[
-                    ["id", "UUID", "Primary key, auto-generated"],
-                    ["title", "TEXT", "Submission title"],
-                    ["content_type", "TEXT", "'poem' | 'story' | 'video'"],
-                    ["era", "TEXT", "Album/era tag"],
-                    ["body", "TEXT", "Poem or story content"],
-                    ["video_url", "TEXT", "YouTube/Vimeo URL"],
-                    ["ai_assisted", "BOOLEAN", "AI disclosure flag"],
-                    ["ai_details", "TEXT", "How AI was used"],
-                    ["is_original", "BOOLEAN", "Compliance checkbox 1"],
-                    ["no_copyright", "BOOLEAN", "Compliance checkbox 2"],
-                    ["accepts_terms", "BOOLEAN", "Compliance checkbox 3"],
-                    ["status", "TEXT", "'pending' | 'approved' | 'rejected'"],
-                    ["author_id", "UUID", "FK → auth.users"],
-                    ["author_name", "TEXT", "Display name"],
-                    ["author_email", "TEXT", "Member email"],
-                    ["created_at", "TIMESTAMPTZ", "Auto, submission time"],
-                    ["reviewed_at", "TIMESTAMPTZ", "When admin acted"],
-                  ].map(([col, type, notes]) => (
-                    <tr key={col}>
-                      <td className="py-1.5 pr-4 text-violet-700">{col}</td>
-                      <td className="py-1.5 pr-4 text-amber-600">{type}</td>
-                      <td className="py-1.5 text-slate-500">{notes}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-slate-300 hover:text-red-500"
+                onClick={() => setConfirmDelete(true)}
+                title="Delete lead"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
-
-          <p className="text-xs text-slate-400 text-center">
-            Set up the <code className="font-mono">submissions</code> table in your Supabase dashboard, then wire up <code className="font-mono">ContentService.ts</code> to replace the mock data in this admin panel.
-          </p>
         </div>
       </div>
+
+      {/* Expanded details */}
+      {expanded && (
+        <div className="border-t border-slate-100 bg-slate-50 p-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5 text-sm">
+            <DetailItem label="Loan Type" value={LOAN_TYPE_LABELS[lead.loan_type]} />
+            <DetailItem label="Property Address" value={lead.property_address} />
+            <DetailItem label="Property Type" value={lead.property_type} />
+            <DetailItem label="State" value={lead.property_state} />
+            <DetailItem label="Estimated Value" value={lead.estimated_value} />
+            <DetailItem label="Purchase Price" value={lead.purchase_price} />
+            <DetailItem
+              label="Loan Amount"
+              value={LOAN_AMOUNT_LABELS[lead.loan_amount ?? ""] ?? lead.loan_amount}
+            />
+            <DetailItem label="Est. LTV/LTC" value={lead.estimated_ltv} />
+            <DetailItem label="Timeline" value={lead.timeline} />
+            <DetailItem label="Credit Score" value={lead.credit_score_range} />
+            <DetailItem label="Experience" value={lead.real_estate_experience} />
+            {lead.monthly_rent && <DetailItem label="Monthly Rent" value={lead.monthly_rent} />}
+            {lead.rehab_budget && <DetailItem label="Rehab Budget" value={lead.rehab_budget} />}
+            {lead.after_repair_value && (
+              <DetailItem label="After Repair Value" value={lead.after_repair_value} />
+            )}
+            {lead.lot_owned !== undefined && lead.lot_owned !== null && (
+              <DetailItem label="Lot Owned" value={lead.lot_owned ? "Yes" : "No"} />
+            )}
+            {lead.construction_budget && (
+              <DetailItem label="Construction Budget" value={lead.construction_budget} />
+            )}
+            {lead.contacted_at && (
+              <DetailItem label="Contacted At" value={formatDate(lead.contacted_at)} />
+            )}
+            <DetailItem label="Lead ID" value={lead.id} mono />
+          </div>
+
+          <Separator className="mb-4" />
+
+          <div className="space-y-2">
+            <Label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+              Notes
+            </Label>
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add internal notes about this lead..."
+              className="text-sm min-h-[80px] bg-white"
+            />
+            <div className="flex items-center gap-3">
+              <Button
+                size="sm"
+                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold"
+                onClick={() => onNotesSave(lead.id, notes)}
+              >
+                Save Notes
+              </Button>
+              {savedId === lead.id && (
+                <span className="text-green-600 text-xs flex items-center gap-1">
+                  <CheckCircle className="h-3.5 w-3.5" /> Saved
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
 
-/* ─── Main Admin Dashboard ───────────────────────────────────── */
-function AdminDashboard() {
-  const [submissions, setSubmissions] = useState<Submission[]>(mockSubmissions);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterType, setFilterType] = useState<string>("all");
+// ─── Main Admin Component ─────────────────────────────────────────────────────
+
+const AdminPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [leads, setLeads] = useState<LoanLead[]>(MOCK_LEADS);
   const [search, setSearch] = useState("");
-  const [showStorage, setShowStorage] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [filterType, setFilterType] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [savedId, setSavedId] = useState<string | null>(null);
 
-  const updateStatus = (id: string, status: Status) => {
-    setSubmissions((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, status } : s))
+  // ─── Stats ──────────────────────────────────────────────────────────────
+
+  const stats = useMemo(
+    () => ({
+      total: leads.length,
+      newLeads: leads.filter((l) => l.status === "new").length,
+      inProgress: leads.filter(
+        (l) => l.status === "in_progress" || l.status === "contacted"
+      ).length,
+      closed: leads.filter((l) => l.status === "closed").length,
+    }),
+    [leads]
+  );
+
+  // ─── Filtered leads ──────────────────────────────────────────────────────
+
+  const filtered = useMemo(() => {
+    return leads.filter((l) => {
+      const matchSearch =
+        !search ||
+        l.full_name.toLowerCase().includes(search.toLowerCase()) ||
+        l.email.toLowerCase().includes(search.toLowerCase());
+      const matchType = filterType === "all" || l.loan_type === filterType;
+      const matchStatus = filterStatus === "all" || l.status === filterStatus;
+      return matchSearch && matchType && matchStatus;
+    });
+  }, [leads, search, filterType, filterStatus]);
+
+  // ─── Handlers ───────────────────────────────────────────────────────────
+
+  const handleStatusChange = (id: string, status: LoanLeadStatus) => {
+    setLeads((prev) =>
+      prev.map((l) =>
+        l.id === id
+          ? {
+              ...l,
+              status,
+              ...(status === "contacted"
+                ? { contacted_at: new Date().toISOString() }
+                : {}),
+            }
+          : l
+      )
     );
   };
 
-  const remove = (id: string) => {
-    setSubmissions((prev) => prev.filter((s) => s.id !== id));
+  const handleNotesSave = (id: string, notes: string) => {
+    setLeads((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, notes } : l))
+    );
+    setSavedId(id);
+    setTimeout(() => setSavedId(null), 2500);
   };
 
-  const filtered = submissions.filter((s) => {
-    if (filterStatus !== "all" && s.status !== filterStatus) return false;
-    if (filterType !== "all" && s.contentType !== filterType) return false;
-    if (search && !s.title.toLowerCase().includes(search.toLowerCase()) &&
-        !s.author.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
-
-  const counts = {
-    total: submissions.length,
-    pending: submissions.filter((s) => s.status === "pending").length,
-    approved: submissions.filter((s) => s.status === "approved").length,
-    rejected: submissions.filter((s) => s.status === "rejected").length,
+  const handleDelete = (id: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== id));
   };
+
+  if (!loggedIn) {
+    return <LoginGate onLogin={() => setLoggedIn(true)} />;
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      {showStorage && <StorageModal onClose={() => setShowStorage(false)} />}
-
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white shadow-sm">
+      <header className="sticky top-0 z-50 bg-slate-950 border-b border-slate-800 shadow-md">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-pink-500 text-white shadow-sm">
-              <ShieldCheck className="h-5 w-5" />
+            <div className="flex items-center justify-center h-8 w-8 rounded-md bg-amber-500">
+              <Zap className="h-5 w-5 text-slate-950 fill-slate-950" />
             </div>
             <div>
-              <p className="text-xs text-slate-400 leading-none">Stories For A Showgirl</p>
-              <p className="text-sm font-bold text-slate-900 leading-tight">Admin Dashboard</p>
+              <span className="text-white font-extrabold text-base">
+                LiteDOC<span className="text-amber-400">.LOANS</span>
+              </span>
+              <span className="text-slate-500 text-xs ml-2">Admin Dashboard</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowStorage(true)}
-              className="hidden sm:flex gap-1.5 border-violet-200 text-violet-700 hover:bg-violet-50"
-            >
-              <Database className="h-4 w-4" /> Storage Info
-            </Button>
-            <a href="/">
-              <Button variant="ghost" size="sm" className="gap-1.5 text-slate-500">
-                <ChevronLeft className="h-4 w-4" /> Back to Site
-              </Button>
-            </a>
-          </div>
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" /> Back to Site
+          </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8 space-y-8">
+      {/* Supabase banner */}
+      <div className="bg-blue-50 border-b border-blue-200">
+        <div className="mx-auto max-w-7xl px-6 py-2 flex items-center gap-2 text-blue-700 text-xs">
+          <Info className="h-3.5 w-3.5 flex-shrink-0" />
+          <span>
+            Connect Supabase to manage real leads — see{" "}
+            <code className="font-mono bg-blue-100 px-1 rounded">LoanService.ts</code>{" "}
+            for setup instructions. Currently showing mock data.
+          </span>
+        </div>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <main className="mx-auto max-w-7xl w-full px-6 py-8">
+        {/* Stats row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "Total Submissions", value: counts.total, icon: <Users className="h-5 w-5 text-slate-400" />, color: "border-slate-200 bg-white" },
-            { label: "Pending Review", value: counts.pending, icon: <Moon className="h-5 w-5 text-yellow-500" />, color: "border-yellow-200 bg-yellow-50" },
-            { label: "Approved", value: counts.approved, icon: <Check className="h-5 w-5 text-green-500" />, color: "border-green-200 bg-green-50" },
-            { label: "Rejected", value: counts.rejected, icon: <X className="h-5 w-5 text-red-500" />, color: "border-red-200 bg-red-50" },
-          ].map(({ label, value, icon, color }) => (
-            <div key={label} className={`rounded-2xl border p-5 ${color}`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-slate-500 font-medium">{label}</span>
-                {icon}
+            {
+              icon: <Users className="h-5 w-5 text-slate-500" />,
+              label: "Total Leads",
+              value: stats.total,
+            },
+            {
+              icon: <Clock className="h-5 w-5 text-yellow-500" />,
+              label: "New (Uncontacted)",
+              value: stats.newLeads,
+            },
+            {
+              icon: <TrendingUp className="h-5 w-5 text-blue-500" />,
+              label: "In Progress",
+              value: stats.inProgress,
+            },
+            {
+              icon: <CheckCircle className="h-5 w-5 text-green-500" />,
+              label: "Closed",
+              value: stats.closed,
+            },
+          ].map(({ icon, label, value }) => (
+            <div
+              key={label}
+              className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex items-center gap-4"
+            >
+              <div className="flex-shrink-0">{icon}</div>
+              <div>
+                <p className="text-2xl font-extrabold text-slate-900">{value}</p>
+                <p className="text-xs text-slate-500 font-medium">{label}</p>
               </div>
-              <p className="text-3xl font-extrabold text-slate-900">{value}</p>
             </div>
           ))}
         </div>
 
-        {/* Storage notice */}
-        <div
-          className="rounded-2xl border border-violet-200 bg-violet-50 p-4 flex items-start gap-3 cursor-pointer hover:bg-violet-100 transition-colors"
-          onClick={() => setShowStorage(true)}
-        >
-          <Database className="h-5 w-5 text-violet-500 mt-0.5 flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-violet-800">
-              Content is stored in <span className="font-mono">Supabase PostgreSQL</span> → <span className="font-mono">submissions</span> table
-            </p>
-            <p className="text-xs text-violet-600 mt-0.5">
-              Media files → Supabase Storage · Email alerts → SendGrid · Auth → Supabase Auth.{" "}
-              <span className="underline underline-offset-2">Click to see the full storage architecture →</span>
-            </p>
-          </div>
-        </div>
-
         {/* Filters */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-            <Filter className="h-4 w-4 text-violet-500" /> Filter Submissions
-          </div>
-          <div className="grid sm:grid-cols-3 gap-3">
-            <div className="relative">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                placeholder="Search title or author…"
+                placeholder="Search by name or email..."
+                className="pl-9"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
               />
             </div>
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="All loan types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Loan Types</SelectItem>
+                <SelectItem value="dscr">DSCR Rental</SelectItem>
+                <SelectItem value="fix_flip">Fix & Flip</SelectItem>
+                <SelectItem value="ground_up">Ground-Up</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full sm:w-44">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger>
-                <SelectValue placeholder="All types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="poem">Poems</SelectItem>
-                <SelectItem value="story">Stories</SelectItem>
-                <SelectItem value="video">Videos</SelectItem>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="contacted">Contacted</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+                <SelectItem value="lost">Lost</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        {/* Submissions table */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="font-semibold text-slate-900">
-              Submissions{" "}
-              <span className="text-slate-400 font-normal text-sm">({filtered.length})</span>
-            </h2>
-            {counts.pending > 0 && (
-              <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">
-                {counts.pending} awaiting review
-              </Badge>
-            )}
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="py-16 text-center text-slate-400">
-              <Sparkles className="mx-auto h-8 w-8 mb-3 opacity-30" />
-              <p className="text-sm">No submissions match your filters.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {filtered.map((sub) => (
-                <div key={sub.id} className="px-6 py-4 hover:bg-slate-50 transition-colors">
-                  <div className="flex items-start gap-4">
-                    {/* Meta */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <button
-                          className="font-semibold text-slate-900 hover:text-violet-700 transition-colors text-left"
-                          onClick={() => setExpandedId(expandedId === sub.id ? null : sub.id)}
-                        >
-                          {sub.title}
-                        </button>
-                        <Badge className={`text-xs border ${statusColors[sub.status]}`}>
-                          {sub.status}
-                        </Badge>
-                        <span className="flex items-center gap-1 text-xs text-slate-400 bg-slate-100 rounded-full px-2 py-0.5">
-                          {typeIcon(sub.contentType)} {sub.contentType}
-                        </span>
-                        {sub.aiAssisted && (
-                          <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
-                            AI-assisted
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500">
-                        <span className="font-medium text-slate-700">{sub.author}</span>
-                        {" · "}{sub.email}
-                        {" · "}{sub.era}
-                        {" · "}{fmt(sub.submittedAt)}
-                      </p>
-                      {expandedId === sub.id && (
-                        <div className="mt-3 rounded-xl bg-slate-50 border border-slate-200 p-4">
-                          <p className="text-sm text-slate-600 leading-relaxed italic">"{sub.body}"</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {sub.status !== "approved" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 gap-1 border-green-200 text-green-700 hover:bg-green-50"
-                          onClick={() => updateStatus(sub.id, "approved")}
-                        >
-                          <ThumbsUp className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Approve</span>
-                        </Button>
-                      )}
-                      {sub.status !== "rejected" && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 gap-1 border-red-200 text-red-600 hover:bg-red-50"
-                          onClick={() => updateStatus(sub.id, "rejected")}
-                        >
-                          <ThumbsDown className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Reject</span>
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 w-8 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                        onClick={() => remove(sub.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Leads count */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-slate-500">
+            Showing{" "}
+            <span className="font-semibold text-slate-800">{filtered.length}</span> of{" "}
+            <span className="font-semibold text-slate-800">{leads.length}</span> leads
+          </p>
         </div>
 
-        {/* Footer note */}
-        <p className="text-xs text-center text-slate-400 pb-4">
-          ⚠️ This admin area uses mock data. Wire up <code className="font-mono">ContentService.ts</code> + Supabase to manage real submissions.
-        </p>
+        {/* Lead list */}
+        {filtered.length === 0 ? (
+          <div className="text-center py-16 text-slate-400">
+            <Users className="h-10 w-10 mx-auto mb-3 opacity-30" />
+            <p className="font-medium">No leads match your filters.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {filtered.map((lead) => (
+              <LeadRow
+                key={lead.id}
+                lead={lead}
+                onStatusChange={handleStatusChange}
+                onNotesSave={handleNotesSave}
+                onDelete={handleDelete}
+                savedId={savedId}
+              />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
-}
-
-/* ─── Export: gates login before showing dashboard ──────────── */
-const AdminPage: React.FC = () => {
-  const [authed, setAuthed] = useState(false);
-  return authed ? <AdminDashboard /> : <LoginGate onLogin={() => setAuthed(true)} />;
 };
 
 export default AdminPage;
